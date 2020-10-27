@@ -45,110 +45,110 @@ const HOST = process.env.HOST || '0.0.0.0';
 
 if (process.env.HOST) {
   console.log(
-      chalk.cyan(
-          `Attempting to bind to HOST environment variable: ${chalk.yellow(
-              chalk.bold(process.env.HOST),
-          )}`,
-      ),
+    chalk.cyan(
+      `Attempting to bind to HOST environment variable: ${chalk.yellow(
+        chalk.bold(process.env.HOST),
+      )}`,
+    ),
   );
   console.log(
-      `If this was unintentional, check that you haven't mistakenly set it in your shell.`,
+    `If this was unintentional, check that you haven't mistakenly set it in your shell.`,
   );
   console.log(
-      `Learn more here: ${chalk.yellow('https://cra.link/advanced-config')}`,
+    `Learn more here: ${chalk.yellow('https://cra.link/advanced-config')}`,
   );
   console.log();
 }
 
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
-const {checkBrowsers} = require('react-dev-utils/browsersHelper');
+const { checkBrowsers } = require('react-dev-utils/browsersHelper');
 checkBrowsers(paths.appPath, isInteractive)
-    .then(() => {
-      // We attempt to use the default port but if it is busy, we offer the user to
-      // run on a different port. `choosePort()` Promise resolves to the next free port.
-      return choosePort(HOST, DEFAULT_PORT);
-    })
-    .then(port => {
-      if (port == null) {
-        // We have not found a port.
-        return;
-      }
+  .then(() => {
+    // We attempt to use the default port but if it is busy, we offer the user to
+    // run on a different port. `choosePort()` Promise resolves to the next free port.
+    return choosePort(HOST, DEFAULT_PORT);
+  })
+  .then(port => {
+    if (port == null) {
+      // We have not found a port.
+      return;
+    }
 
-      const config = configFactory('development');
-      const protocol = process.env.HTTPS === 'true' ? 'https' : 'http';
-      const appName = require(paths.appPackageJson).name;
+    const config = configFactory('development');
+    const protocol = process.env.HTTPS === 'true' ? 'https' : 'http';
+    const appName = require(paths.appPackageJson).name;
 
-      const useTypeScript = fs.existsSync(paths.appTsConfig);
-      const tscCompileOnError = process.env.TSC_COMPILE_ON_ERROR === 'true';
-      const urls = prepareUrls(
-          protocol,
-          HOST,
-          port,
-          paths.publicUrlOrPath.slice(0, -1),
-      );
-      const devSocket = {
-        warnings: warnings => console.warn(chalk.yellow(warnings)),
-        errors: errors => console.error(chalk.red(errors)),
-      };
-      // Create a webpack compiler that is configured with custom messages.
-      const compiler = createCompiler({
-        appName,
-        config,
-        devSocket,
-        urls,
-        useYarn,
-        useTypeScript,
-        tscCompileOnError,
-        webpack,
-      });
-      const app = express();
-      app.use(webpackDevMiddleware(compiler,
-          {
-            logLevel: 'warn',
-            publicPath: config.output.publicPath,
-          },
-      ));
-      app.use(webpackHotMiddleware(compiler,
-          {
-            log: false,
-            path: `/__webpack_hmr`, heartbeat: 10 * 1000,
-          },
-      ));
-
-      app.use(express.static(paths.appPublic));
-
-      // Launch WebpackDevServer.
-      const devServer = app.listen(port, HOST, err => {
-        if (err) {
-          return console.log(err);
-        }
-        if (isInteractive) {
-          clearConsole();
-        }
-
-        console.log(chalk.cyan('Starting the development server...\n'));
-        openBrowser(urls.localUrlForBrowser);
-      });
-
-      ['SIGINT', 'SIGTERM'].forEach(function(sig) {
-        process.on(sig, function() {
-          devServer.close();
-          process.exit();
-        });
-      });
-
-      if (process.env.CI !== 'true') {
-        // Gracefully exit when stdin ends
-        process.stdin.on('end', function() {
-          devServer.close();
-          process.exit();
-        });
-      }
-    })
-    .catch(err => {
-      if (err && err.message) {
-        console.log(err.message);
-      }
-      process.exit(1);
+    const useTypeScript = fs.existsSync(paths.appTsConfig);
+    const tscCompileOnError = process.env.TSC_COMPILE_ON_ERROR === 'true';
+    const urls = prepareUrls(
+      protocol,
+      HOST,
+      port,
+      paths.publicUrlOrPath.slice(0, -1),
+    );
+    const devSocket = {
+      warnings: warnings => console.warn(chalk.yellow(warnings)),
+      errors: errors => console.error(chalk.red(errors)),
+    };
+    // Create a webpack compiler that is configured with custom messages.
+    const compiler = createCompiler({
+      appName,
+      config,
+      devSocket,
+      urls,
+      useYarn,
+      useTypeScript,
+      tscCompileOnError,
+      webpack,
     });
+    const app = express();
+    app.use(webpackDevMiddleware(compiler,
+      {
+        logLevel: 'warn',
+        publicPath: config.output.publicPath,
+      },
+    ));
+    app.use(webpackHotMiddleware(compiler,
+      {
+        log: false,
+        path: `/__webpack_hmr`, heartbeat: 10 * 1000,
+      },
+    ));
+
+    app.use(express.static(paths.appPublic));
+
+    // Launch WebpackDevServer.
+    const devServer = app.listen(port, HOST, err => {
+      if (err) {
+        return console.log(err);
+      }
+      if (isInteractive) {
+        clearConsole();
+      }
+
+      console.log(chalk.cyan('Starting the development server...\n'));
+      openBrowser(urls.localUrlForBrowser);
+    });
+
+    ['SIGINT', 'SIGTERM'].forEach(function(sig) {
+      process.on(sig, function() {
+        devServer.close();
+        process.exit();
+      });
+    });
+
+    if (process.env.CI !== 'true') {
+      // Gracefully exit when stdin ends
+      process.stdin.on('end', function() {
+        devServer.close();
+        process.exit();
+      });
+    }
+  })
+  .catch(err => {
+    if (err && err.message) {
+      console.log(err.message);
+    }
+    process.exit(1);
+  });
